@@ -1,3 +1,4 @@
+#CREATE S3 WITH PARAMETERS
 ---
 Resources:
   MyS3Bucket:
