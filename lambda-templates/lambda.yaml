@@ -1,0 +1,22 @@
+Resources:
+  lambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code: 
+        S3Bucket: lambda-code-cloudformation
+        S3Key: app.zip
+      FunctionName: FunctionJefferson
+      Description: Teste-Jefferson Description
+      Runtime: nodejs8.10
+      MemorySize: 128
+      Handler: handler
+      Role: arn:aws:iam::675796402854:role/ExecuteSQSAndSNSFromLambda
+      Environment: 
+        Variables:
+           "PORT": "3000"
+      Timeout: 10
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0e585177b46f4a7e0
+        SubnetIds:
+          - subnet-0c8df0c9d5f908b64

@@ -1,0 +1,24 @@
+Parameters:
+  Cooldown:
+    Type: Number
+    Default: 60
+  AvailabilityZones: 
+     Type: List<AWS::EC2::AvailabilityZone::Name>
+  DesiredCapacity: 
+    Type: Number
+    Default: 1
+  
+  #DEFINIR SUBNET
+Resources:
+  MyAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: CloudFormationAutoScaling
+      AvailabilityZones: !Ref AvailabilityZones
+      Cooldown: !Ref Cooldown
+      DesiredCapacity: !Ref DesiredCapacity
+      HealthCheckGracePeriod: "15"
+      HealthCheckType: EC2
+      LaunchConfigurationName: CloudFormationAutoScaling
+      MaxSize: 2
+      MinSize: 1

@@ -1,0 +1,437 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: The AWS CloudFormation template for this Serverless application
+Resources:
+  ServerlessDeploymentBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 2a2b1f71-78bf-4123-addb-8b740beba614
+  AppLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: /aws/lambda/aws-serverless-express-v1-app
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 684c33cb-3d77-4a4f-bf59-0df94d75ee23
+  IamRoleLambdaExecution:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: !Join 
+            - '-'
+            - - v1
+              - aws-serverless-express
+              - lambda
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogStream'
+                Resource:
+                  - !Sub >-
+                    arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/aws-serverless-express-v1-app:*
+              - Effect: Allow
+                Action:
+                  - 'logs:PutLogEvents'
+                Resource:
+                  - !Sub >-
+                    arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/aws-serverless-express-v1-app:*:*
+      Path: /
+      RoleName: !Join 
+        - '-'
+        - - aws-serverless-express
+          - v1
+          - us-east-1
+          - lambdaRole
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 2b2541b6-ef1b-40d2-862f-9f3d26f1c3ef
+  AppLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Code:
+        S3Bucket: !Ref ServerlessDeploymentBucket
+        S3Key: >-
+          serverless/aws-serverless-express/v1/1552147222891-2019-03-09T16:00:22.891Z/aws-serverless-express.zip
+      FunctionName: aws-serverless-express-v1-app
+      Handler: handler.run
+      MemorySize: 128
+      Role: !GetAtt 
+        - IamRoleLambdaExecution
+        - Arn
+      Runtime: nodejs8.10
+      Timeout: 30
+    DependsOn:
+      - AppLogGroup
+      - IamRoleLambdaExecution
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: ca9f0164-98b1-4529-a57c-1bfe1ce506e8
+  AppLambdaVersionGUauGgUBsIFicd2M0Y9sD7tDk13LjmTJDgbAEHHk:
+    Type: 'AWS::Lambda::Version'
+    DeletionPolicy: Retain
+    Properties:
+      FunctionName: !Ref AppLambdaFunction
+      CodeSha256: pHJnDObw1/SGkpvtKpi2T6XMQrX2Q5yXJkVwKNOvaPU=
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: d343f8e1-082f-4882-8b50-3ad9a7c1470d
+  ApiGatewayRestApi:
+    Type: 'AWS::ApiGateway::RestApi'
+    Properties:
+      Name: v1-aws-serverless-express
+      EndpointConfiguration:
+        Types:
+          - EDGE
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+  ApiGatewayResourceTariff:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      ParentId: !GetAtt 
+        - ApiGatewayRestApi
+        - RootResourceId
+      PathPart: tariff
+      RestApiId: !Ref ApiGatewayRestApi
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 241a7a23-8812-426d-b40b-5ee231bac0d0
+  ApiGatewayResourceTariffCalculate:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      ParentId: !Ref ApiGatewayResourceTariff
+      PathPart: calculate
+      RestApiId: !Ref ApiGatewayRestApi
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 140c07fa-fdb6-4ea9-9528-259fd11cc694
+  ApiGatewayResourceTariffCharge:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      ParentId: !Ref ApiGatewayResourceTariff
+      PathPart: charge
+      RestApiId: !Ref ApiGatewayRestApi
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 4ad7269a-26e5-4ec4-99b7-c385d7b7bee3
+  ApiGatewayMethodGet:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      HttpMethod: GET
+      RequestParameters: {}
+      ResourceId: !GetAtt 
+        - ApiGatewayRestApi
+        - RootResourceId
+      RestApiId: !Ref ApiGatewayRestApi
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Join 
+          - ''
+          - - 'arn:'
+            - !Ref 'AWS::Partition'
+            - ':apigateway:'
+            - !Ref 'AWS::Region'
+            - ':lambda:path/2015-03-31/functions/'
+            - !GetAtt 
+              - AppLambdaFunction
+              - Arn
+            - /invocations
+      MethodResponses: []
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 2fe4e237-a052-466a-a3b1-0a3c8589eb57
+  ApiGatewayMethodTariffCalculateGet:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      HttpMethod: GET
+      RequestParameters: {}
+      ResourceId: !Ref ApiGatewayResourceTariffCalculate
+      RestApiId: !Ref ApiGatewayRestApi
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Join 
+          - ''
+          - - 'arn:'
+            - !Ref 'AWS::Partition'
+            - ':apigateway:'
+            - !Ref 'AWS::Region'
+            - ':lambda:path/2015-03-31/functions/'
+            - !GetAtt 
+              - AppLambdaFunction
+              - Arn
+            - /invocations
+      MethodResponses: []
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 59ac1eff-5a92-4f81-b195-a9a6cbfa4706
+  ApiGatewayMethodTariffChargePost:
+    Type: 'AWS::ApiGateway::Method'
+    Properties:
+      HttpMethod: POST
+      RequestParameters: {}
+      ResourceId: !Ref ApiGatewayResourceTariffCharge
+      RestApiId: !Ref ApiGatewayRestApi
+      ApiKeyRequired: false
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Join 
+          - ''
+          - - 'arn:'
+            - !Ref 'AWS::Partition'
+            - ':apigateway:'
+            - !Ref 'AWS::Region'
+            - ':lambda:path/2015-03-31/functions/'
+            - !GetAtt 
+              - AppLambdaFunction
+              - Arn
+            - /invocations
+      MethodResponses: []
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: 284338d6-d439-45f6-9b15-4c222bea9ffd
+  ApiGatewayDeployment1552147222939:
+    Type: 'AWS::ApiGateway::Deployment'
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      StageName: v1
+    DependsOn:
+      - ApiGatewayMethodGet
+      - ApiGatewayMethodTariffCalculateGet
+      - ApiGatewayMethodTariffChargePost
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: d0fb90f3-cf34-43c3-98a3-5945000e470b
+  AppLambdaPermissionApiGateway:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName: !GetAtt 
+        - AppLambdaFunction
+        - Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: !Join 
+        - ''
+        - - apigateway.
+          - !Ref 'AWS::URLSuffix'
+      SourceArn: !Join 
+        - ''
+        - - 'arn:'
+          - !Ref 'AWS::Partition'
+          - ':execute-api:'
+          - !Ref 'AWS::Region'
+          - ':'
+          - !Ref 'AWS::AccountId'
+          - ':'
+          - !Ref ApiGatewayRestApi
+          - /*/*
+    Metadata:
+      'AWS::CloudFormation::Designer':
+        id: bfdb6160-f747-4d15-bb00-0354c16f5787
+Outputs:
+  ServerlessDeploymentBucketName:
+    Value: !Ref ServerlessDeploymentBucket
+  AppLambdaFunctionQualifiedArn:
+    Description: Current Lambda function version
+    Value: !Ref AppLambdaVersionGUauGgUBsIFicd2M0Y9sD7tDk13LjmTJDgbAEHHk
+  ServiceEndpoint:
+    Description: URL of the service endpoint
+    Value: !Join 
+      - ''
+      - - 'https://'
+        - !Ref ApiGatewayRestApi
+        - .execute-api.us-east-1.
+        - !Ref 'AWS::URLSuffix'
+        - /v1
+Metadata:
+  'AWS::CloudFormation::Designer':
+    0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2:
+      size:
+        width: 870
+        height: 870
+      position:
+        x: -320
+        'y': -1780
+      z: 1
+      embeds:
+        - 241a7a23-8812-426d-b40b-5ee231bac0d0
+        - 2fe4e237-a052-466a-a3b1-0a3c8589eb57
+        - d0fb90f3-cf34-43c3-98a3-5945000e470b
+    241a7a23-8812-426d-b40b-5ee231bac0d0:
+      size:
+        width: 690
+        height: 600
+      position:
+        x: -290
+        'y': -1720
+      z: 2
+      parent: 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+      embeds:
+        - 4ad7269a-26e5-4ec4-99b7-c385d7b7bee3
+        - 140c07fa-fdb6-4ea9-9528-259fd11cc694
+      iscontainedinside:
+        - 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+    4ad7269a-26e5-4ec4-99b7-c385d7b7bee3:
+      size:
+        width: 240
+        height: 240
+      position:
+        x: 40
+        'y': -1660
+      z: 3
+      parent: 241a7a23-8812-426d-b40b-5ee231bac0d0
+      embeds:
+        - 284338d6-d439-45f6-9b15-4c222bea9ffd
+      iscontainedinside:
+        - 241a7a23-8812-426d-b40b-5ee231bac0d0
+        - 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+    140c07fa-fdb6-4ea9-9528-259fd11cc694:
+      size:
+        width: 240
+        height: 240
+      position:
+        x: -260
+        'y': -1660
+      z: 3
+      parent: 241a7a23-8812-426d-b40b-5ee231bac0d0
+      embeds:
+        - 59ac1eff-5a92-4f81-b195-a9a6cbfa4706
+      iscontainedinside:
+        - 241a7a23-8812-426d-b40b-5ee231bac0d0
+        - 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+    2b2541b6-ef1b-40d2-862f-9f3d26f1c3ef:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 990
+        'y': 300
+      z: 1
+      embeds: []
+    684c33cb-3d77-4a4f-bf59-0df94d75ee23:
+      size:
+        width: 150
+        height: 150
+      position:
+        x: 990
+        'y': 90
+      z: 1
+      embeds: []
+    2a2b1f71-78bf-4123-addb-8b740beba614:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 1110
+        'y': 300
+      z: 1
+      embeds: []
+    ca9f0164-98b1-4529-a57c-1bfe1ce506e8:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 990
+        'y': 420
+      z: 1
+      embeds: []
+      dependson:
+        - 684c33cb-3d77-4a4f-bf59-0df94d75ee23
+    bfdb6160-f747-4d15-bb00-0354c16f5787:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 1110
+        'y': 420
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - ca9f0164-98b1-4529-a57c-1bfe1ce506e8
+    284338d6-d439-45f6-9b15-4c222bea9ffd:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 70
+        'y': -1600
+      z: 4
+      parent: 4ad7269a-26e5-4ec4-99b7-c385d7b7bee3
+      embeds: []
+      iscontainedinside:
+        - 4ad7269a-26e5-4ec4-99b7-c385d7b7bee3
+        - 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+    59ac1eff-5a92-4f81-b195-a9a6cbfa4706:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -230
+        'y': -1600
+      z: 4
+      parent: 140c07fa-fdb6-4ea9-9528-259fd11cc694
+      embeds: []
+      iscontainedinside:
+        - 140c07fa-fdb6-4ea9-9528-259fd11cc694
+        - 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+    2fe4e237-a052-466a-a3b1-0a3c8589eb57:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -290
+        'y': -1060
+      z: 2
+      parent: 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+      embeds: []
+      iscontainedinside:
+        - 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+    d0fb90f3-cf34-43c3-98a3-5945000e470b:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: -170
+        'y': -1060
+      z: 2
+      parent: 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+      embeds: []
+      iscontainedinside:
+        - 0031e12c-e1f4-4e6e-ae04-d73b31bb8ec2
+      dependson:
+        - 2fe4e237-a052-466a-a3b1-0a3c8589eb57
+        - 59ac1eff-5a92-4f81-b195-a9a6cbfa4706
+        - 284338d6-d439-45f6-9b15-4c222bea9ffd
+    d343f8e1-082f-4882-8b50-3ad9a7c1470d:
+      size:
+        width: 60
+        height: 60
+      position:
+        x: 990
+        'y': 540
+      z: 1
+      embeds: []
+      isassociatedwith:
+        - ca9f0164-98b1-4529-a57c-1bfe1ce506e8
