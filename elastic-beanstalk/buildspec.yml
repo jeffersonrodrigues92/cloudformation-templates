@@ -1,0 +1,18 @@
+version: 0.2
+ 
+phases:
+  install:
+    commands:
+      - echo Installing...
+  pre_build:
+    commands:
+      - echo Installing source NPM dependencies...
+      - npm install
+  build:
+    commands:
+      - echo Compiling the Node.js code
+      - echo van-api-$(date +%Y-%m-%d)
+artifacts:
+  files:
+    - '**/*'
+  name: van-api-$(date +%Y-%m-%d)

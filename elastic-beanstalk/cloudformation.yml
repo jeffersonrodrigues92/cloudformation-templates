@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  application:
+    Type: AWS::ElasticBeanstalk::Application
+    Properties:
+      ApplicationName: van-api
+      Description: AWS Elastic Beanstalk 
+  
+  applicationVersion:
+    Type: AWS::ElasticBeanstalk::ApplicationVersion
+    Properties:
+      ApplicationName: !Ref application 
+      Description: AWS ElasticBeanstalk Sample Application Version
+      SourceBundle:
+        S3Bucket: codepipeline-us-east-1-216598164744
+        S3Key: van-api.zip
+  
+  ConfigurationTemplate:
+    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
+    Properties:
+      ApplicationName: !Ref application
+      Description: AWS ElasticBeanstalk Sample Configuration Template
+      SolutionStackName: 64bit Amazon Linux 2018.03 v4.8.2 running Node.js
+
+  Environment:
+    Type: AWS::ElasticBeanstalk::Environment
+    Properties:
+      ApplicationName: !Ref application
+      CNAMEPrefix : van-api
+      Description: AWS ElasticBeanstalk Sample Environment
+      SolutionStackName: 64bit Amazon Linux 2018.03 v4.8.2 running Node.js
+      VersionLabel:
+        Ref: applicationVersion
