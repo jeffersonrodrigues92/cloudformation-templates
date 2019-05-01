@@ -1,0 +1,26 @@
+alarmTopic:
+      Type: AWS::SNS::Topic
+      Properties: 
+        TopicName: "Nome do Topico"
+  
+    cloudWatchAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmActions:
+          - !Ref alarmTopic
+        AlarmDescription: "Descricao do Alarme"
+        AlarmName: "Nome do Alarme"
+          
+        ComparisonOperator: "GreaterThanThreshold"
+        Statistic: "Sum"
+        Dimensions:
+          - Name: QueueName
+            Value: "NomeDaFilaDoSQS"
+        DatapointsToAlarm: 1
+        EvaluationPeriods: 1
+        InsufficientDataActions:
+          - !Ref alarmTopic
+        Period: 300
+        Threshold: 1
+        Namespace: "AWS/SQS"
+        MetricName: "ApproximateNumberOfMessagesVisible"
